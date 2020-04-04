@@ -14,17 +14,14 @@ import java.lang.ref.WeakReference
 class ExoPlayerInstance {
     companion object {
 
-        var playerInstance : SimpleExoPlayer ? = null
-
-        fun getInstance(context: Context): SimpleExoPlayer? {
+        private fun getInstance(context: Context): SimpleExoPlayer? {
             val videoTrackSelectionFactory = AdaptiveTrackSelection.Factory(DefaultBandwidthMeter())
             val trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
             val ctx: WeakReference<Context> = WeakReference(context)
-            playerInstance = ExoPlayerFactory.newSimpleInstance(
+            return ExoPlayerFactory.newSimpleInstance(
                 ctx.get()!!, trackSelector, getLoadControl()
                     ?: DefaultLoadControl()
             )
-            return playerInstance
         }
 
         fun getPlayer(context: Context, url: String = ""): SimpleExoPlayer? {

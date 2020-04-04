@@ -9,7 +9,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     private val videoRepository: VideoRepository = VideoRepository()
 
     init {
-        videoRepository.prepareDataSet()
+        videoRepository.prepareDataSet()//PREPARE LIST OF VIDEOS
     }
 
     fun getVideoList() : ArrayList<Video>{

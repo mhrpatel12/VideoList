@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.videolist.R
 import com.videolist.databinding.MainActivityBinding
-import com.videolist.utils.ExoPlayerInstance
+import com.videolist.extensions.attachSnapHelperWithListener
 import com.videolist.view.adapter.OnSnapPositionChangeListener
 import com.videolist.view.adapter.SnapOnScrollListener
 import com.videolist.view.adapter.VideoAdapter
@@ -31,9 +31,11 @@ class MainActivity : AppCompatActivity(), OnSnapPositionChangeListener {
         mainActivityViewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
         val snapper = PagerSnapHelper()
         videoAdapter = VideoAdapter(this, mainActivityViewModel.getVideoList()) {
+            //VIDEO ENDED CALLBACK //SCROLL TO NEXT ITEM
             mainActivityBinding.listVideos.smoothScrollToPosition(position + 1)
         }
         mainActivityBinding.listVideos.layoutManager = object : LinearLayoutManager(this) {
+            //MAKE HEIGHT OF EACH ITEM OF RECYCLER VIEW AS PER HEIGHT OF DEVICE
             override fun checkLayoutParams(lp: RecyclerView.LayoutParams): Boolean {
                 val displayMetrics = DisplayMetrics()
                 windowManager.defaultDisplay.getMetrics(displayMetrics)
@@ -41,22 +43,36 @@ class MainActivity : AppCompatActivity(), OnSnapPositionChangeListener {
                 return true
             }
         }
-        val snapOnScrollListener = SnapOnScrollListener(
+
+        mainActivityBinding.listVideos.adapter = videoAdapter
+        //SNAP SCROLL LISTENER // HELPER TO GET UPDATED SCROLL VIEW POSITION IN onSnapPositionChange
+        mainActivityBinding.listVideos.attachSnapHelperWithListener(
             snapper,
             SnapOnScrollListener.Behavior.NOTIFY_ON_SCROLL_STATE_IDLE,
             this
         )
-        mainActivityBinding.listVideos.addOnScrollListener(snapOnScrollListener)
-        mainActivityBinding.listVideos.adapter = videoAdapter
         snapper.attachToRecyclerView(mainActivityBinding.listVideos)
     }
 
     override fun onSnapPositionChange(position: Int) {
-        this.position = position
+        this.position = position //UPDATED POSITION OF RECYCLER VIEW
     }
 
+    /**
+     * CLEAR EXO PLAYER INSTANCE AND STOP PLAYBACK WHEN ACTIVITY IS NO LONGER VISIBLE
+     **/
     override fun onDestroy() {
         super.onDestroy()
-        ExoPlayerInstance.playerInstance?.release()
+        videoAdapter.playerInstance?.release()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        videoAdapter.playerInstance?.playWhenReady = false
+    }
+
+    override fun onStart() {
+        super.onStart()
+        videoAdapter.playerInstance?.playWhenReady = true
     }
 }
